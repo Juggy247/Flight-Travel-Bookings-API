@@ -14,7 +14,7 @@ class User(Base):
     email = Column(String(100), nullable = False, unique = True)
     phone = Column(String(20), nullable =True)
     is_active = Column(Boolean, default=True ,nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     is_admin = Column(Boolean, default=False, nullable=False)
 
     bookings = relationship("Booking", back_populates="user")

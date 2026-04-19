@@ -56,14 +56,14 @@ def get_flight(
 
     return db.query(FlightModel).offset(offset).limit(limit).all()
 
-@router.get("/flights/search")
+@router.get("/flights/search", response_model=list[FlightResponse])
 def search_flights(destination: str, max_price: float = None, db: Session = Depends(get_db)):
     query = db.query(FlightModel).filter(FlightModel.destination == destination)
-    if max_price:
+    if max_price is not None:
         query = query.filter(FlightModel.price <= max_price)
     return query.all()
 
-@router.get("/flights/{flight_id}")
+@router.get("/flights/{flight_id}",  response_model=FlightResponse)
 def get_flight_name(flight_id: int, db: Session = Depends(get_db)):
     query_id = db.query(FlightModel).filter(FlightModel.id == flight_id).first()   #first() - Limit 1 
     if not query_id:

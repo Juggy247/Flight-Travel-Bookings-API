@@ -3,12 +3,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from models.user import User as UserModel
-from schemas.user import UserCreate, UserResponse
+from schemas.user import UserCreate, UserResponse, Token
 from database import get_db
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
-from auth import create_access_token, get_current_user
+from auth import create_access_token, get_current_user, hash_pwd
 
 #create router
 router = APIRouter()
@@ -21,9 +21,6 @@ router = APIRouter()
 # that is no longer the preferred one, mark it as deprecated
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def hash_pwd(password: str) -> str:
-    return pwd_context.hash(password)
 
 @router.post("/users/register", response_model=UserResponse)
 #Depends - dependency injection
@@ -51,7 +48,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 # Login 
-@router.post("/users/login")
+@router.post("/users/login", response_model=Token)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
@@ -67,6 +64,9 @@ def login(
     #Verify Password
     if not pwd_context.verify(form_data.password, user.password):
         raise credentials_error
+    
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is deactivated.")
     
     #Create Token
     token = create_access_token(data={"sub": user.email})

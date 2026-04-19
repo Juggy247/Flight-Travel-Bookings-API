@@ -95,8 +95,8 @@ def update_booking(
 
     if booking_data.status == "cancelled":
         flight = db.query(FlightModel).filter(FlightModel.id == query_check.flight_id).first()
-    if flight:
-        flight.seats += 1
+        if flight:
+            flight.seats += 1
 
     query_check.status = booking_data.status
     db.commit()
