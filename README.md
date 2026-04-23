@@ -1,5 +1,7 @@
 # Travel Booking API
 
+![Tests](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/tests.yml/badge.svg)
+
 A RESTful travel booking API built with **FastAPI** and **SQLAlchemy**.
 Designed as a backend learning project focused on real-world API development patterns.
 
