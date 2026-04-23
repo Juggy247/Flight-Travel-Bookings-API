@@ -20,7 +20,7 @@ jobs:
 
       - name: Run tests
         env:
-          SECRET_KEY: "test-secret-key-for-ci"
+          SECRET_KEY: "test-secret-key-for-testing"
           ALGORITHM: "HS256"
           ACCESS_TOKEN_EXPIRE_MINUTES: "30"
         run: pytest tests/ -v
