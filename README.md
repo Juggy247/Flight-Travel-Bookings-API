@@ -1,5 +1,5 @@
 # Travel Booking API
-[![Tests](https://github.com/Juggy247/Flight-Travel-Bookings-API/actions/workflows/tests.yml/badge.svg)](https://github.com/Juggy247/Flight-Travel-Bookings-API/actions/workflows/tests.yml)
+[![Tests](https://github.com/Juggy247/Flight-Travel-Bookings-API/actions/workflows/test.yml/badge.svg)](https://github.com/Juggy247/Flight-Travel-Bookings-API/actions/workflows/test.yml)
 
 A RESTful travel booking API built with **FastAPI** and **SQLAlchemy**.
 Designed as a backend learning project focused on real-world API development patterns.
