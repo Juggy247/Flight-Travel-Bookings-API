@@ -1,0 +1,689 @@
+openapi: 3.1.0
+info:
+  title: Flight Agency
+  version: 0.1.0
+paths:
+  /flights:
+    post:
+      tags:
+      - Flights API
+      summary: Create Flight
+      operationId: create_flight_flights_post
+      security:
+      - OAuth2PasswordBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlightCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Flight not found
+        '422':
+          description: Validation error
+    get:
+      tags:
+      - Flights API
+      summary: Get Flight
+      operationId: get_flight_flights_get
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+          title: Page
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlightResponse'
+                title: Response Get Flight Flights Get
+        '400':
+          description: Bad request
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Flight not found
+        '422':
+          description: Validation error
+  /flights/search:
+    get:
+      tags:
+      - Flights API
+      summary: Search Flights
+      operationId: search_flights_flights_search_get
+      parameters:
+      - name: destination
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Destination
+      - name: max_price
+        in: query
+        required: false
+        schema:
+          type: number
+          title: Max Price
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlightResponse'
+                title: Response Search Flights Flights Search Get
+        '400':
+          description: Bad request
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Flight not found
+        '422':
+          description: Validation error
+  /flights/{flight_id}:
+    get:
+      tags:
+      - Flights API
+      summary: Get Flight Name
+      operationId: get_flight_name_flights__flight_id__get
+      parameters:
+      - name: flight_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Flight Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Flight not found
+        '422':
+          description: Validation error
+    delete:
+      tags:
+      - Flights API
+      summary: Delete Flight
+      operationId: delete_flight_flights__flight_id__delete
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: flight_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Flight Id
+      responses:
+        '204':
+          description: Successful Response
+        '400':
+          description: Bad request
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Flight not found
+        '422':
+          description: Validation error
+    put:
+      tags:
+      - Flights API
+      summary: Update Flight
+      operationId: update_flight_flights__flight_id__put
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: flight_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Flight Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlightUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Not authenticated
+        '403':
+          description: Admin access required
+        '404':
+          description: Flight not found
+        '422':
+          description: Validation error
+  /users/register:
+    post:
+      tags:
+      - Users API
+      summary: Register User
+      operationId: register_user_users_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Account deactivated
+        '409':
+          description: Email already registered
+        '422':
+          description: Validation error
+  /users/login:
+    post:
+      tags:
+      - Users API
+      summary: Login
+      operationId: login_users_login_post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Body_login_users_login_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Account deactivated
+        '409':
+          description: Email already registered
+        '422':
+          description: Validation error
+  /users/me:
+    get:
+      tags:
+      - Users API
+      summary: Get Me
+      operationId: get_me_users_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Not authenticated
+        '403':
+          description: Account deactivated
+        '409':
+          description: Email already registered
+        '422':
+          description: Validation error
+      security:
+      - OAuth2PasswordBearer: []
+  /bookings:
+    post:
+      tags:
+      - Bookings API
+      summary: Create Booking
+      operationId: create_booking_bookings_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '400':
+          description: No seats available or duplicate booking
+        '401':
+          description: Not authenticated
+        '404':
+          description: Booking not found
+        '422':
+          description: Invalid status value
+      security:
+      - OAuth2PasswordBearer: []
+  /bookings/me:
+    get:
+      tags:
+      - Bookings API
+      summary: Get Booking
+      operationId: get_booking_bookings_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/BookingResponse'
+                type: array
+                title: Response Get Booking Bookings Me Get
+        '400':
+          description: No seats available or duplicate booking
+        '401':
+          description: Not authenticated
+        '404':
+          description: Booking not found
+        '422':
+          description: Invalid status value
+      security:
+      - OAuth2PasswordBearer: []
+  /bookings/{booking_id}:
+    delete:
+      tags:
+      - Bookings API
+      summary: Delete Booking
+      operationId: delete_booking_bookings__booking_id__delete
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Booking Id
+      responses:
+        '204':
+          description: Successful Response
+        '400':
+          description: No seats available or duplicate booking
+        '401':
+          description: Not authenticated
+        '404':
+          description: Booking not found
+        '422':
+          description: Invalid status value
+    put:
+      tags:
+      - Bookings API
+      summary: Update Booking
+      operationId: update_booking_bookings__booking_id__put
+      security:
+      - OAuth2PasswordBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Booking Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '400':
+          description: No seats available or duplicate booking
+        '401':
+          description: Not authenticated
+        '404':
+          description: Booking not found
+        '422':
+          description: Invalid status value
+components:
+  schemas:
+    Body_login_users_login_post:
+      properties:
+        grant_type:
+          anyOf:
+          - type: string
+            pattern: ^password$
+          - type: 'null'
+          title: Grant Type
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          format: password
+          title: Password
+        scope:
+          type: string
+          title: Scope
+          default: ''
+        client_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Client Id
+        client_secret:
+          anyOf:
+          - type: string
+          - type: 'null'
+          format: password
+          title: Client Secret
+      type: object
+      required:
+      - username
+      - password
+      title: Body_login_users_login_post
+    BookingCreate:
+      properties:
+        flight_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Flight Id
+      type: object
+      required:
+      - flight_id
+      title: BookingCreate
+    BookingResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        user_id:
+          type: integer
+          title: User Id
+        flight_id:
+          type: integer
+          title: Flight Id
+        status:
+          type: string
+          enum:
+          - confirmed
+          - cancelled
+          title: Status
+        booked_at:
+          type: string
+          format: date-time
+          title: Booked At
+      type: object
+      required:
+      - id
+      - user_id
+      - flight_id
+      - status
+      - booked_at
+      title: BookingResponse
+    BookingUpdate:
+      properties:
+        status:
+          type: string
+          enum:
+          - confirmed
+          - cancelled
+          title: Status
+      type: object
+      required:
+      - status
+      title: BookingUpdate
+    FlightCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+        origin:
+          type: string
+          maxLength: 100
+          minLength: 2
+          title: Origin
+        destination:
+          type: string
+          maxLength: 100
+          minLength: 2
+          title: Destination
+        flight_number:
+          type: string
+          title: Flight Number
+        boarding_time:
+          type: string
+          format: date-time
+          title: Boarding Time
+        price:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Price
+        seats:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Seats
+      type: object
+      required:
+      - name
+      - origin
+      - destination
+      - flight_number
+      - boarding_time
+      - price
+      - seats
+      title: FlightCreate
+    FlightResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        name:
+          type: string
+          title: Name
+        origin:
+          type: string
+          title: Origin
+        destination:
+          type: string
+          title: Destination
+        flight_number:
+          type: string
+          title: Flight Number
+        boarding_time:
+          type: string
+          format: date-time
+          title: Boarding Time
+        price:
+          type: number
+          title: Price
+        seats:
+          type: integer
+          title: Seats
+      type: object
+      required:
+      - id
+      - name
+      - origin
+      - destination
+      - flight_number
+      - boarding_time
+      - price
+      - seats
+      title: FlightResponse
+    FlightUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        origin:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Origin
+        destination:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Destination
+        boarding_time:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Boarding Time
+        price:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Price
+        seats:
+          anyOf:
+          - type: integer
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Seats
+      type: object
+      title: FlightUpdate
+    Token:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+      type: object
+      required:
+      - access_token
+      - token_type
+      title: Token
+    UserCreate:
+      properties:
+        first_name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: First Name
+        last_name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Last Name
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          minLength: 8
+          title: Password
+        phone:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Phone
+      type: object
+      required:
+      - first_name
+      - last_name
+      - email
+      - password
+      title: UserCreate
+    UserResponse:
+      properties:
+        id:
+          type: integer
+          title: Id
+        first_name:
+          type: string
+          title: First Name
+        last_name:
+          type: string
+          title: Last Name
+        email:
+          type: string
+          title: Email
+        is_active:
+          type: boolean
+          title: Is Active
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - first_name
+      - last_name
+      - email
+      - is_active
+      - created_at
+      title: UserResponse
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          scopes: {}
+          tokenUrl: /users/login

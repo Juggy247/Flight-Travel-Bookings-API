@@ -1,17 +1,18 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from models.user import User as UserModel
 from schemas.user import UserCreate, UserResponse, Token
 from database import get_db
-from datetime import datetime
-from sqlalchemy.exc import IntegrityError
-from passlib.context import CryptContext
-from auth import create_access_token, get_current_user, hash_pwd
+from auth import create_access_token, get_current_user, hash_pwd,  verify_pwd 
+from constants import COMMON_RESPONSES
 
 #create router
-router = APIRouter()
+
+router = APIRouter(
+    tags=["Users API"],
+    responses=COMMON_RESPONSES
+)
 
 #bcrypt hashing setup
 #Passlib is a password hashing framework for Python.
@@ -20,7 +21,6 @@ router = APIRouter()
 #deprecated="auto" - If a stored password hash uses an old algorithm, 
 # that is no longer the preferred one, mark it as deprecated
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/users/register", response_model=UserResponse)
 #Depends - dependency injection
@@ -44,6 +44,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     )
     db.add(new_user)
     db.commit()
+    db.refresh(new_user) 
 
     return new_user
 
@@ -62,7 +63,7 @@ def login(
         raise credentials_error
     
     #Verify Password
-    if not pwd_context.verify(form_data.password, user.password):
+    if not verify_pwd(form_data.password, user.password):
         raise credentials_error
     
     if not user.is_active:
