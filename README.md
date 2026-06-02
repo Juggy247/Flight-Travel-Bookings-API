@@ -25,6 +25,8 @@ A RESTful travel booking API built with **FastAPI** and **SQLAlchemy**.
 ---
 
 ## Project Structure
+
+```
 travel-api/
 ├── main.py              # App entry point, sqladmin, exception handlers
 ├── database.py          # DB engine, session, base
@@ -53,13 +55,13 @@ travel-api/
 │   ├── bookings.py      # Booking endpoints
 │   └── payments.py      # Payment endpoints
 └── tests/
-├── conftest.py      # Shared test database setup
-├── test_airports.py # Airport tests
-├── test_flights.py  # Flight tests
-├── test_users.py    # User tests
-├── test_bookings.py # Booking tests
-└── test_payments.py # Payment tests
-
+    ├── conftest.py      # Shared test database setup
+    ├── test_airports.py # Airport tests
+    ├── test_flights.py  # Flight tests
+    ├── test_users.py    # User tests
+    ├── test_bookings.py # Booking tests
+    └── test_payments.py # Payment tests
+```
 ---
 
 ## Setup & Installation
