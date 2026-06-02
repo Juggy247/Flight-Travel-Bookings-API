@@ -47,19 +47,6 @@ def test_get_airports_returns_created():
     assert len(response.json()) == 1
     assert response.json()[0]["code"] == "KUL"
 
-# --- GET /airports/{id} ---
-def test_get_airport_by_id():
-    airport = create_test_airport()
-    response = client.get(f"/airports/{airport.id}")
-    assert response.status_code == 200
-    assert response.json()["id"] == airport.id
-    assert response.json()["code"] == "KUL"
-    assert response.json()["city"] == "Kuala Lumpur"
-
-def test_get_airport_not_found():
-    response = client.get("/airports/999")
-    assert response.status_code == 404
-
 # --- GET /airports/search ---
 def test_search_airports_by_city():
     create_test_airport()
@@ -76,14 +63,12 @@ def test_search_airports_by_country():
     assert response.json()[0]["country"] == "Malaysia"
 
 def test_search_airports_case_insensitive():
-    # ilike search should be case insensitive
     create_test_airport()
     response = client.get("/airports/search?city=kuala lumpur")
     assert response.status_code == 200
     assert len(response.json()) == 1
 
 def test_search_airports_partial_match():
-    # ilike with % should match partial strings
     create_test_airport()
     response = client.get("/airports/search?city=Kuala")
     assert response.status_code == 200
@@ -98,7 +83,6 @@ def test_search_airports_by_city_and_country():
         "country": "Singapore",
         "timezone": "Asia/Singapore"
     })
-    # filter by both city and country
     response = client.get("/airports/search?city=Kuala Lumpur&country=Malaysia")
     assert response.status_code == 200
     assert len(response.json()) == 1
@@ -106,15 +90,14 @@ def test_search_airports_by_city_and_country():
 
 def test_search_airports_no_results():
     response = client.get("/airports/search?city=NonExistentCity")
-    assert response.status_code == 200
-    assert response.json() == []
+    assert response.status_code == 404  # ← changed from 200
+    assert "No airports found" in response.json()["message"]
 
 # --- Pagination ---
 def test_pagination_airports():
-    # Create 15 airports with unique codes
     for i in range(15):
         create_test_airport({
-            "code": f"A{i:02d}",  # A00, A01... A14
+            "code": f"AA{chr(65+i)}",  # AAA, AAB... AAO
             "city": f"City{i}",
             "country": f"Country{i}",
             "timezone": "Asia/Kuala_Lumpur"

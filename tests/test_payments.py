@@ -89,7 +89,6 @@ def get_second_user_token():
     return response.json()["access_token"]
 
 def create_test_booking(user_token, flight_id):
-    """Create a booking via API"""
     return client.post("/bookings",
         headers={"Authorization": f"Bearer {user_token}"},
         json={"flight_id": flight_id}
@@ -104,31 +103,22 @@ def test_create_payment():
 
     response = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={
-            "booking_id": booking["id"],
-            "amount": 299.99,
-            "currency": "USD"
-        }
+        json={"booking_id": booking["id"], "currency": "USD"}
     )
     assert response.status_code == 200
     assert response.json()["booking_id"] == booking["id"]
     assert response.json()["status"] == "pending"
-    assert response.json()["amount"] == 299.99
+    assert response.json()["amount"] == flight.price  # ← from flight
 
 def test_create_payment_invalid_booking():
     user_token = get_user_token()
     response = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={
-            "booking_id": 999,  # doesn't exist
-            "amount": 299.99,
-            "currency": "USD"
-        }
+        json={"booking_id": 999, "currency": "USD"}
     )
     assert response.status_code == 404
 
 def test_create_payment_duplicate():
-    # Can't pay for same booking twice
     origin_id, destination_id = create_test_airports()
     user_token = get_user_token()
     flight = create_test_flight(origin_id, destination_id)
@@ -137,17 +127,16 @@ def test_create_payment_duplicate():
     # First payment
     client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     )
     # Second payment — duplicate
     response = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     )
     assert response.status_code == 400
 
 def test_create_payment_not_owned():
-    # User 2 cannot pay for User 1's booking
     origin_id, destination_id = create_test_airports()
     user_token = get_user_token()
     second_token = get_second_user_token()
@@ -156,7 +145,7 @@ def test_create_payment_not_owned():
 
     response = client.post("/payments",
         headers={"Authorization": f"Bearer {second_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     )
     assert response.status_code == 404
 
@@ -166,9 +155,8 @@ def test_create_payment_requires_auth():
     flight = create_test_flight(origin_id, destination_id)
     booking = create_test_booking(user_token, flight.id)
 
-    # No token
     response = client.post("/payments",
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     )
     assert response.status_code == 401
 
@@ -180,11 +168,12 @@ def test_create_payment_invalid_currency():
 
     response = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "XYZ"}
+        json={"booking_id": booking["id"], "currency": "XYZ"}
     )
     assert response.status_code == 422
 
-def test_create_payment_negative_amount():
+def test_create_payment_wrong_currency():
+    # currency must match flight currency (USD)
     origin_id, destination_id = create_test_airports()
     user_token = get_user_token()
     flight = create_test_flight(origin_id, destination_id)
@@ -192,9 +181,10 @@ def test_create_payment_negative_amount():
 
     response = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": -100, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "EUR"}
     )
-    assert response.status_code == 422
+    assert response.status_code == 400
+    assert "Currency must match" in response.json()["message"]
 
 # --- GET /payments ---
 def test_get_payments():
@@ -205,7 +195,7 @@ def test_get_payments():
 
     client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     )
 
     response = client.get("/payments",
@@ -215,28 +205,32 @@ def test_get_payments():
     assert len(response.json()) == 1
     assert response.json()[0]["booking_id"] == booking["id"]
 
+def test_get_payments_empty():
+    user_token = get_user_token()
+    response = client.get("/payments",
+        headers={"Authorization": f"Bearer {user_token}"}
+    )
+    assert response.status_code == 404
+    assert "no payments" in response.json()["message"].lower()
+
 def test_get_payments_only_mine():
-    # User should only see their own payments
     origin_id, destination_id = create_test_airports()
     user_token = get_user_token()
     second_token = get_second_user_token()
     flight = create_test_flight(origin_id, destination_id)
 
-    # User 1 books and pays
     booking1 = create_test_booking(user_token, flight.id)
     client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking1["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking1["id"], "currency": "USD"}
     )
 
-    # User 2 books and pays
     booking2 = create_test_booking(second_token, flight.id)
     client.post("/payments",
         headers={"Authorization": f"Bearer {second_token}"},
-        json={"booking_id": booking2["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking2["id"], "currency": "USD"}
     )
 
-    # Each user should only see their own payment
     response = client.get("/payments",
         headers={"Authorization": f"Bearer {user_token}"}
     )
@@ -245,49 +239,6 @@ def test_get_payments_only_mine():
 def test_get_payments_requires_auth():
     response = client.get("/payments")
     assert response.status_code == 401
-
-# --- GET /payments/{id} ---
-def test_get_payment_by_id():
-    origin_id, destination_id = create_test_airports()
-    user_token = get_user_token()
-    flight = create_test_flight(origin_id, destination_id)
-    booking = create_test_booking(user_token, flight.id)
-
-    payment = client.post("/payments",
-        headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
-    ).json()
-
-    response = client.get(f"/payments/{payment['id']}",
-        headers={"Authorization": f"Bearer {user_token}"}
-    )
-    assert response.status_code == 200
-    assert response.json()["id"] == payment["id"]
-
-def test_get_payment_not_found():
-    user_token = get_user_token()
-    response = client.get("/payments/999",
-        headers={"Authorization": f"Bearer {user_token}"}
-    )
-    assert response.status_code == 404
-
-def test_get_payment_not_owned():
-    # User 2 cannot see User 1's payment
-    origin_id, destination_id = create_test_airports()
-    user_token = get_user_token()
-    second_token = get_second_user_token()
-    flight = create_test_flight(origin_id, destination_id)
-    booking = create_test_booking(user_token, flight.id)
-
-    payment = client.post("/payments",
-        headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
-    ).json()
-
-    response = client.get(f"/payments/{payment['id']}",
-        headers={"Authorization": f"Bearer {second_token}"}
-    )
-    assert response.status_code == 404
 
 # --- PUT /payments/{id} ---
 def test_update_payment_status():
@@ -298,7 +249,7 @@ def test_update_payment_status():
 
     payment = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     ).json()
 
     response = client.put(f"/payments/{payment['id']}",
@@ -316,17 +267,16 @@ def test_update_payment_invalid_status():
 
     payment = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     ).json()
 
     response = client.put(f"/payments/{payment['id']}",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"status": "invalid_status"}  # not valid
+        json={"status": "invalid_status"}
     )
     assert response.status_code == 422
 
 def test_update_payment_not_owned():
-    # User 2 cannot update User 1's payment
     origin_id, destination_id = create_test_airports()
     user_token = get_user_token()
     second_token = get_second_user_token()
@@ -335,7 +285,7 @@ def test_update_payment_not_owned():
 
     payment = client.post("/payments",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"booking_id": booking["id"], "amount": 299.99, "currency": "USD"}
+        json={"booking_id": booking["id"], "currency": "USD"}
     ).json()
 
     response = client.put(f"/payments/{payment['id']}",

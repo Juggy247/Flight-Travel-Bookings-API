@@ -17,7 +17,6 @@ def reset_db():
 
 # --- Helpers ---
 def create_test_airports():
-    """Create test airports directly in DB — airports managed via sqladmin"""
     from models.airport import Airport
     db = TestingSessionLocal()
     origin = Airport(
@@ -43,7 +42,6 @@ def create_test_airports():
     return origin.id, destination.id
 
 def create_test_flight(origin_id, destination_id, overrides={}):
-    """Create flight directly in DB — flights managed via sqladmin"""
     from models.flight import Flight
     db = TestingSessionLocal()
     future = datetime.now() + timedelta(days=30)
@@ -106,16 +104,24 @@ def test_get_flight_not_found():
 
 # --- GET /flights/search ---
 def test_search_flights_by_destination():
-    origin_id, destination_id = create_test_airports()
+    origin_id, destination_id = create_test_airports()  # ← only once
     create_test_flight(origin_id, destination_id)
-    response = client.get(f"/flights/search?destination_id={destination_id}")
+    response = client.get("/flights/search?destination=NRT")
     assert response.status_code == 200
     assert len(response.json()) == 1
 
 def test_search_flights_no_results():
-    response = client.get("/flights/search?destination_id=999")
-    assert response.status_code == 200
-    assert response.json() == []
+    create_test_airports()
+    # valid airport code but no flights
+    response = client.get("/flights/search?destination=NRT")
+    assert response.status_code == 404
+    assert "No flights found" in response.json()["message"]
+
+def test_search_flights_invalid_airport_code():
+    # airport code doesn't exist
+    response = client.get("/flights/search?destination=XXX")
+    assert response.status_code == 404
+    assert "Airport" in response.json()["message"]
 
 def test_search_flights_with_max_price():
     origin_id, destination_id = create_test_airports()
@@ -124,7 +130,7 @@ def test_search_flights_with_max_price():
         "flight_number": "AK102",
         "price": 599.99
     })
-    response = client.get(f"/flights/search?destination_id={destination_id}&max_price=300")
+    response = client.get("/flights/search?destination=NRT&max_price=300")
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["price"] == 299.99
@@ -132,9 +138,8 @@ def test_search_flights_with_max_price():
 def test_search_flights_max_price_zero():
     origin_id, destination_id = create_test_airports()
     create_test_flight(origin_id, destination_id)
-    response = client.get(f"/flights/search?destination_id={destination_id}&max_price=0")
-    assert response.status_code == 200
-    assert response.json() == []
+    response = client.get("/flights/search?destination=NRT&max_price=0")
+    assert response.status_code == 404
 
 # --- Pagination ---
 def test_pagination():

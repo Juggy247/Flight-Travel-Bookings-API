@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, UniqueConstraint, ForeignKey,Boolean
-from datetime import datetime, timezone
 from database import Base
 from sqlalchemy.orm import relationship
 
@@ -13,5 +12,8 @@ class Airport(Base):
     country = Column(String, nullable=False)
     timezone = Column(String, nullable=False)
 
-    departing_flights = relationship("Flight", foreign_keys="Flight.origin_id", back_populates="origin_airport")
-    arriving_flights = relationship("Flight", foreign_keys="Flight.destination_id", back_populates="destination_airport")
+    def __str__(self):  
+        return f"{self.code} - {self.city}"
+
+    departing_flights = relationship("Flight", foreign_keys="[Flight.origin_id]", back_populates="origin_airport")
+    arriving_flights = relationship("Flight", foreign_keys="[Flight.destination_id]", back_populates="destination_airport")

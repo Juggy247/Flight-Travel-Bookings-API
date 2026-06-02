@@ -50,11 +50,21 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db),
     return new_booking
 
 @router.get("/bookings", response_model=list[BookingResponse])  # list[BookingResponse] - list of BookingResponse objects
-def get_booking(
+def get_bookings(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)):
 
-    return db.query(BookingModel).filter(BookingModel.user_id == current_user.id).all()
+    bookings = db.query(BookingModel).filter(
+        BookingModel.user_id == current_user.id
+    ).all()
+
+    if not bookings:
+        raise HTTPException(
+            status_code=404,
+            detail="You have no bookings yet."
+        )
+
+    return bookings
 
 @router.delete("/bookings/{booking_id}", status_code=204)
 def delete_booking(booking_id: int, db: Session = Depends(get_db),

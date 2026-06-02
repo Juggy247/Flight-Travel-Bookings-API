@@ -36,11 +36,14 @@ def search_airports(
         query = query.filter(AirportModel.city.ilike(f"%{city}%"))
     if country:
         query = query.filter(AirportModel.country.ilike(f"%{country}%"))
-    return query.all()
 
-@router.get("/airports/{airport_id}", response_model=AirportResponse)
-def get_airport(airport_id: int, db: Session = Depends(get_db)):
-    airport = db.query(AirportModel).filter(AirportModel.id == airport_id).first()
-    if not airport:
-        raise HTTPException(status_code=404, detail="Airport not found.")
-    return airport
+    airports = query.all()
+
+    if not airports:
+        raise HTTPException(
+            status_code=404,
+            detail="No airports found matching your search criteria."
+        )
+
+    return airports
+

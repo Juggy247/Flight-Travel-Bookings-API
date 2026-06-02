@@ -1,10 +1,22 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from datetime import datetime
 from typing import Literal
+import re
 
 class BookingBase(BaseModel):
     flight_id: int = Field(gt=0)
     seat_number: str | None = None
+
+    @field_validator("seat_number")
+    @classmethod
+    def validate_seat_number(cls, value):
+        if value is None:
+            return value
+        if not re.match(r"^([1-9]|[1-4][0-9]|50)[A-F]$", value.upper()):
+            raise ValueError(
+                "Invalid seat number. Must be row 1-50 + letter A-F e.g. 1A, 12B, 48C"
+            )
+        return value.upper()
 
 class BookingCreate(BookingBase):
     pass

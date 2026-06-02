@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from models.payment import Payment as PaymentModel
 from models.booking import Booking as BookingModel
+from models.flight import Flight as FlightModel
 from schemas.payment import PaymentCreate, PaymentResponse, PaymentUpdate
 from models.user import User as UserModel
 from database import get_db
@@ -19,16 +20,16 @@ def create_payment(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)):
 
-    # Check if booking exists
+    # Check if booking exists and belongs to user
     booking = db.query(BookingModel).filter(
         BookingModel.id == payment.booking_id,
-        BookingModel.user_id == current_user.id  # user can only pay for their own booking
+        BookingModel.user_id == current_user.id
     ).first()
 
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found.")
 
-    # Check if payment already exists for this booking
+    # Check if payment already exists
     existing_payment = db.query(PaymentModel).filter(
         PaymentModel.booking_id == payment.booking_id
     ).first()
@@ -36,12 +37,26 @@ def create_payment(
     if existing_payment:
         raise HTTPException(status_code=400, detail="Payment already exists for this booking.")
 
-    # Create payment
+    # Get flight to check price and currency
+    flight = db.query(FlightModel).filter(
+        FlightModel.id == booking.flight_id
+    ).first()
+
+    # Validate currency matches — for now flights use USD
+    # when flight has currency field this will be dynamic
+    flight_currency = "USD"
+    if payment.currency != flight_currency:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Currency must match flight currency: {flight_currency}"
+        )
+
+    # Create payment — amount automatically from flight price
     new_payment = PaymentModel(
         booking_id=payment.booking_id,
-        amount=payment.amount,
+        amount=flight.price,        # ← automatically from flight
         currency=payment.currency,
-        status="pending"  # ← always starts as pending
+        status="pending"
     )
     db.add(new_payment)
     db.commit()
@@ -49,33 +64,21 @@ def create_payment(
     return new_payment
 
 @router.get("/payments", response_model=list[PaymentResponse])
-def get_my_payments(
+def get_payments(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)):
 
-    # Get all payments for current user's bookings
     payments = db.query(PaymentModel).join(BookingModel).filter(
         BookingModel.user_id == current_user.id
     ).all()
 
+    if not payments:
+        raise HTTPException(
+            status_code=404,
+            detail="You have no payments yet."
+        )
+
     return payments
-
-@router.get("/payments/{payment_id}", response_model=PaymentResponse)
-def get_payment(
-    payment_id: int,
-    db: Session = Depends(get_db),
-    current_user: UserModel = Depends(get_current_user)):
-
-    # Get payment — user can only see their own
-    payment = db.query(PaymentModel).join(BookingModel).filter(
-        PaymentModel.id == payment_id,
-        BookingModel.user_id == current_user.id
-    ).first()
-
-    if not payment:
-        raise HTTPException(status_code=404, detail="Payment not found.")
-
-    return payment
 
 @router.put("/payments/{payment_id}", response_model=PaymentResponse)
 def update_payment(
@@ -84,7 +87,6 @@ def update_payment(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)):
 
-    # Find payment belonging to current user
     payment = db.query(PaymentModel).join(BookingModel).filter(
         PaymentModel.id == payment_id,
         BookingModel.user_id == current_user.id

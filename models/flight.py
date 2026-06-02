@@ -24,6 +24,8 @@ class Flight(Base):
 
     origin_airport = relationship("Airport", foreign_keys=[origin_id],           
                                   back_populates="departing_flights")
+    
     destination_airport = relationship("Airport", foreign_keys=[destination_id],  
                                        back_populates="arriving_flights")
+    
     bookings = relationship("Booking", back_populates="flight")
