@@ -16,3 +16,7 @@ class Booking(Base):
     user = relationship("User", back_populates="bookings")
     flight = relationship("Flight", back_populates="bookings")
     payment = relationship("Payment", back_populates="booking", uselist=False)
+    hidden = Column(Boolean, default=False, nullable=False)
+
+    def __str__(self):
+        return f"Booking {self.id} - {self.status}"

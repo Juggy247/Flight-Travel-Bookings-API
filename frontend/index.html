@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flights — Flight Agency</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=2">
+    <link rel="stylesheet" href="/static/css/flights.css?v=2">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <img src="/static/images/air-plane.png" alt="Flight Agency" class="navbar-logo">
+             Flight Agency
+        </a>
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="navbar-menu" id="navbar-menu">
+            <li><a href="/" class="active">Flights</a></li>
+            <li id="guest-links-bookings" style="display:none">
+                <a href="/bookings-page">My Bookings</a>
+            </li>
+            <li id="guest-links-payments" style="display:none">
+                <a href="/payments-page">My Payments</a>
+            </li>
+            <li id="nav-login"><a href="/login">Login</a></li>
+            <li id="nav-register"><a href="/register">Register</a></li>
+            <li id="nav-user" style="display:none">
+                <span class="nav-email" id="user-email"></span>
+            </li>
+            <li id="nav-logout" style="display:none">
+                <a href="#" onclick="logout()" class="btn btn-secondary btn-sm">Logout</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="page-content">
+
+            <!-- Hero -->
+            <div class="hero hero-bg">
+            <div class="hero-overlay">
+                <h1>Find Your Flight</h1>
+                <p>Search from airports worldwide</p>
+            </div>
+        </div>
+
+            <div class="search-card card">
+                <div class="search-card-header">
+                <h3>Search Flights</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openAirportCodesModal()">
+                    ℹ️ Airport Codes
+                </button>
+            </div>
+            <br>
+            <form id="search-form" onsubmit="handleSearch(event)" novalidate>
+                <div class="search-grid">
+
+                    <div class="form-group">
+                        <label for="destination">Destination Airport Code</label>
+                        <input
+                            type="text"
+                            id="destination"
+                            placeholder="e.g. WAW, NRT, LHR"
+                            maxlength="4"
+                            pattern="[A-Za-z]{3,4}"
+                            oninput="this.value = this.value.toUpperCase()"
+                        >
+                        <span class="form-error" id="destination-error">
+                            Enter a valid airport code (3-4 letters)
+                        </span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="origin">Origin Airport Code</label>
+                        <input
+                            type="text"
+                            id="origin"
+                            placeholder="e.g. KUL, SIN, DXB"
+                            maxlength="4"
+                            pattern="[A-Za-z]{3,4}"
+                            oninput="this.value = this.value.toUpperCase()"
+                        >
+                        <span class="form-error" id="origin-error">
+                            Enter a valid airport code (3-4 letters)
+                        </span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_price">Max Price (USD)</label>
+                        <input
+                            type="number"
+                            id="max_price"
+                            placeholder="e.g. 500"
+                            min="1"
+                            step="0.01"
+                        >
+                        <span class="form-error" id="price-error">
+                            Price must be greater than 0
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- moved below the grid -->
+                <div class="search-actions">
+                    <button type="submit" class="btn btn-primary">
+                        🔍 Search
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="clearSearch()">
+                        Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
+            <!-- Results Header -->
+            <div class="results-header" id="results-header" style="display:none">
+                <h2 id="results-title">Available Flights</h2>
+                <span class="results-count" id="results-count"></span>
+            </div>
+
+            <!-- Alert -->
+            <div class="alert alert-error" id="error-alert"></div>
+            <div class="alert alert-info" id="info-alert"></div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading" style="display:none">
+                <div class="spinner"></div>
+                <p>Searching flights...</p>
+            </div>
+
+            <!-- Flight Cards -->
+            <div class="flights-grid" id="flights-grid"></div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination" style="display:none">
+                <button class="btn btn-secondary btn-sm" id="prev-btn"
+                    onclick="changePage(-1)">← Previous</button>
+                <div class="page-numbers" id="page-numbers"></div>
+                <button class="btn btn-secondary btn-sm" id="next-btn"
+                    onclick="changePage(1)">Next →</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Book Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+        <div class="modal card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Book Flight</h3>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-flight-info"></div>
+                <div class="form-group" style="margin-top: 16px">
+                    <label for="seat_number">
+                        Seat Number
+                        <span class="optional">(optional)</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="seat_number"
+                        placeholder="e.g. 12A, 1B, 34F"
+                        maxlength="3"
+                        pattern="^([1-9]|[1-4][0-9]|50)[A-F]$"
+                        oninput="this.value = this.value.toUpperCase()"
+                    >
+                    <span class="form-hint">Row 1-50 + Letter A-F</span>
+                    <span class="form-error" id="seat-error">
+                        Invalid seat. Use format: 12A, 1B, 34F
+                    </span>
+                </div>
+                <div class="alert alert-error" id="modal-error"></div>
+                <div class="alert alert-success" id="modal-success"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="confirm-book-btn"
+                    onclick="confirmBooking()">Confirm Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Airport Codes Modal -->          
+    <div class="modal-overlay" id="airport-codes-modal" onclick="closeAirportCodesModal()">
+        <div class="modal card" onclick="event.stopPropagation()" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Airport Codes</h3>
+                <button class="modal-close" onclick="closeAirportCodesModal()">✕</button>
+            </div>
+            <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                <input
+                    type="text"
+                    id="airport-codes-search"
+                    placeholder="Search by city, country, or code..."
+                    onkeyup="filterAirportCodes()"
+                    style="margin-bottom: 12px;"
+                >
+                <table class="airport-codes-table" id="airport-codes-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>City</th>
+                            <th>Country</th>
+                        </tr>
+                    </thead>
+                    <tbody id="airport-codes-tbody">
+                        <!-- filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js?v=2"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/flights.js?v=2"></script>
+    <script>
+        toggleMenu = () => document.getElementById("navbar-menu").classList.toggle("open")
+    </script>
+
+</body>
+</html>

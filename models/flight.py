@@ -29,3 +29,6 @@ class Flight(Base):
                                        back_populates="arriving_flights")
     
     bookings = relationship("Booking", back_populates="flight")
+
+    def __str__(self):
+        return f"{self.flight_number} - {self.name}"

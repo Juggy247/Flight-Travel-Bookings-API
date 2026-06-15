@@ -1,12 +1,15 @@
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
 from routers import flights as flights_router
 from routers import users as users_router
 from routers import bookings as bookings_router
 from routers import airports as airports_router
 from routers import payments as payments_router
-from models import flight as flight_table      # import models so SQLAlchemy knows about them
-from models import airport as airport_table    # import models so SQLAlchemy knows about them
-from models import payment as payment_table    # import models so SQLAlchemy knows about them
+from models import flight as flight_table      
+from models import airport as airport_table    
+from models import payment as payment_table    
 from models.user import User
 from models.flight import Flight
 from models.airport import Airport
@@ -18,11 +21,40 @@ from fastapi.exceptions import RequestValidationError
 from sqladmin import Admin, ModelView          # sqladmin — visual admin panel
 
 app = FastAPI(
-    title="Flight Agency",
+    title="Flight Agency"
 )
 
-# --- Admin Panel Setup ---
-# sqladmin creates a visual dashboard at /admin
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve frontend static files
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+@app.get("/")
+def home():
+    return FileResponse("frontend/index.html")
+
+@app.get("/login")
+def login_page():
+    return FileResponse("frontend/login.html")
+
+@app.get("/register")
+def register_page():
+    return FileResponse("frontend/register.html")
+
+@app.get("/bookings-page")
+def bookings_page():
+    return FileResponse("frontend/bookings.html")
+
+@app.get("/payments-page")
+def payments_page():
+    return FileResponse("frontend/payments.html")
+
 # allows managing all tables without touching the database directly
 admin = Admin(app, engine)
 

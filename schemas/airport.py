@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 import re
-from pydantic import field_validator
+from pydantic import field_validator    
+#pydantic library for data validation
 
 class AirportBase(BaseModel):
     name: str = Field(min_length=2, max_length=100)
@@ -35,3 +36,12 @@ class AirportResponse(BaseModel):
     country: str
     timezone: str
     model_config = ConfigDict(from_attributes=True)
+
+
+
+"""
+letters
+followed by /
+followed by letters or underscores
+and nothing else
+"""

@@ -1,0 +1,140 @@
+/* =====================
+   Payment Cards
+   ===================== */
+.payment-card {
+    margin-bottom: 16px;
+    transition: transform 0.2s;
+}
+
+.payment-card:hover {
+    transform: translateY(-2px);
+}
+
+.payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.payment-id {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+}
+
+.payment-details {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.payment-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.detail-value {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.payment-amount {
+    font-size: 1.2rem;
+    color: var(--primary) !important;
+}
+
+.payment-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+/* =====================
+   Page Header
+   ===================== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.page-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* =====================
+   Nav Email
+   ===================== */
+.nav-email {
+    font-weight: 600;
+    color: var(--primary);
+    padding: 8px 16px;
+}
+
+/* =====================
+   Pay Info
+   ===================== */
+.pay-info {
+    background-color: var(--primary-light);
+    padding: 16px;
+    border-radius: var(--radius);
+}
+
+.pay-info p {
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+/* =====================
+   Responsive
+   ===================== */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .payment-details {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .payment-actions {
+        flex-direction: column;
+    }
+
+    .payment-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-overlay.show {
+    display: flex;
+}

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator
 from datetime import datetime
 from typing import Literal
 import re
+from schemas.flight import FlightResponse 
 
 class BookingBase(BaseModel):
     flight_id: int = Field(gt=0)
@@ -26,6 +27,7 @@ class BookingResponse(BookingBase):
     user_id: int
     status: Literal["confirmed", "cancelled"]
     booked_at: datetime
+    flight: FlightResponse | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

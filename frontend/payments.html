@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Payments — Flight Agency</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/payments.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <span>✈️</span> Flight Agency
+        </a>
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="navbar-menu" id="navbar-menu">
+            <li><a href="/">Flights</a></li>
+            <li><a href="/bookings-page">My Bookings</a></li>
+            <li><a href="/payments-page" class="active">My Payments</a></li>
+            <li id="nav-user">
+                <span class="nav-email" id="user-email"></span>
+            </li>
+            <li>
+                <a href="#" onclick="logout()" class="btn btn-secondary btn-sm">Logout</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="page-content">
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>My Payments</h1>
+                <a href="/bookings-page" class="btn btn-primary">
+                    View Bookings
+                </a>
+            </div>
+
+            <!-- Alerts -->
+            <div class="alert alert-error" id="error-alert"></div>
+            <div class="alert alert-success" id="success-alert"></div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading your payments...</p>
+            </div>
+
+            <!-- Payments List -->
+            <div id="payments-list" style="display:none"></div>
+
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal-overlay" id="status-modal" onclick="closeStatusModal()">
+        <div class="modal card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Update Payment Status</h3>
+                <button class="modal-close" onclick="closeStatusModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-payment-info"></div>
+                <div class="form-group" style="margin-top: 16px">
+                    <label for="new-status">New Status</label>
+                    <select id="new-status">
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="refunded">Refunded</option>
+                    </select>
+                </div>
+                <div class="alert alert-error" id="status-error"></div>
+                <div class="alert alert-success" id="status-success"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
+                <button class="btn btn-primary" id="confirm-status-btn"
+                    onclick="confirmStatusUpdate()">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/payments.js"></script>
+
+</body>
+</html>

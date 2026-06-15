@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Flight Agency</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=2">
+    <link rel="stylesheet" href="/static/css/auth.css?v=2">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <img src="/static/images/air-plane.png" alt="Flight Agency" class="navbar-logo">
+             Flight Agency
+        </a>
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="navbar-menu" id="navbar-menu">
+            <li><a href="/">Flights</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register" class="active">Register</a></li>
+        </ul>
+    </nav>
+
+    <!-- Register Form -->
+    <div class="container">
+        <div class="page-content">
+            <div class="auth-wrapper auth-wrapper-register">
+                <div class="auth-card card">
+
+                    <div class="auth-header">
+                        <div class="auth-icon">
+                            <img src="/static/images/air-plane.png" alt="Flight Agency">
+                        </div>
+                        <h1>Create Account</h1>
+                        <p>Join us to start booking flights</p>
+                    </div>
+
+                    <!-- Alerts -->
+                    <div class="alert alert-error" id="error-alert"></div>
+                    <div class="alert alert-success" id="success-alert"></div>
+
+                    <form id="register-form" onsubmit="handleRegister(event)" novalidate>
+
+                        <!-- First Name + Last Name -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first_name">First Name</label>
+                                <input
+                                    type="text"
+                                    id="first_name"
+                                    placeholder="John"
+                                    minlength="1"
+                                    maxlength="100"
+                                    required
+                                >
+                                <span class="form-error" id="first-name-error">
+                                    First name is required
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="last_name">Last Name</label>
+                                <input
+                                    type="text"
+                                    id="last_name"
+                                    placeholder="Doe"
+                                    minlength="1"
+                                    maxlength="100"
+                                    required
+                                >
+                                <span class="form-error" id="last-name-error">
+                                    Last name is required
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input
+                                type="email"
+                                id="email"
+                                placeholder="john@example.com"
+                                required
+                            >
+                            <span class="form-error" id="email-error">
+                                Please enter a valid email address
+                            </span>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="form-group">
+                            <label for="phone">
+                                Phone Number
+                                <span class="optional">(optional)</span>
+                            </label>
+                            <input
+                                type="tel"
+                                id="phone"
+                                placeholder="+1 234 567 890"
+                                pattern="^\+?[0-9][0-9\s\-]{6,19}$"
+                            >
+                            <span class="form-error" id="phone-error">
+                                Please enter a valid phone number
+                            </span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-wrapper">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    placeholder="Minimum 8 characters"
+                                    minlength="8"
+                                    required
+                                >
+                                <button type="button" class="toggle-password"
+                                    onclick="togglePassword('password')">👁️</button>
+                            </div>
+                            <span class="form-error" id="password-error">
+                                Password must be at least 8 characters
+                            </span>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm Password</label>
+                            <div class="input-wrapper">
+                                <input
+                                    type="password"
+                                    id="confirm_password"
+                                    placeholder="Repeat your password"
+                                    minlength="8"
+                                    required
+                                >
+                                <button type="button" class="toggle-password"
+                                    onclick="togglePassword('confirm_password')">👁️</button>
+                            </div>
+                            <span class="form-error" id="confirm-password-error">
+                                Passwords do not match
+                            </span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full" id="register-btn">
+                            Create Account
+                        </button>
+
+                    </form>
+
+                    <div class="auth-footer">
+                        Already have an account?
+                        <a href="/login">Login here</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (localStorage.getItem("token")) {
+            window.location.href = "/"
+        }
+
+        function toggleMenu() {
+            document.getElementById("navbar-menu").classList.toggle("open")
+        }
+
+        function togglePassword(id) {
+            const input = document.getElementById(id)
+            input.type = input.type === "password" ? "text" : "password"
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault()
+
+            const firstName = document.getElementById("first_name")
+            const lastName = document.getElementById("last_name")
+            const email = document.getElementById("email")
+            const phone = document.getElementById("phone")
+            const password = document.getElementById("password")
+            const confirmPassword = document.getElementById("confirm_password")
+            const errorAlert = document.getElementById("error-alert")
+            const successAlert = document.getElementById("success-alert")
+            const btn = document.getElementById("register-btn")
+
+            // Reset errors
+            document.querySelectorAll(".form-error").forEach(el => el.classList.remove("show"))
+            errorAlert.classList.remove("show")
+            successAlert.classList.remove("show")
+
+            // Validate
+            let valid = true
+
+            if (!firstName.value.trim()) {
+                document.getElementById("first-name-error").classList.add("show")
+                valid = false
+            }
+
+            if (!lastName.value.trim()) {
+                document.getElementById("last-name-error").classList.add("show")
+                valid = false
+            }
+
+            if (!email.value || !email.validity.valid) {
+                document.getElementById("email-error").classList.add("show")
+                valid = false
+            }
+
+            if (phone.value && !phone.validity.valid) {
+                document.getElementById("phone-error").classList.add("show")
+                valid = false
+            }
+
+            if (!password.value || password.value.length < 8) {
+                document.getElementById("password-error").classList.add("show")
+                valid = false
+            }
+
+            if (password.value !== confirmPassword.value) {
+                document.getElementById("confirm-password-error").classList.add("show")
+                valid = false
+            }
+
+            if (!valid) return
+
+            // Submit
+            btn.disabled = true
+            btn.textContent = "Creating account..."
+
+            const data = {
+                first_name: firstName.value.trim(),
+                last_name: lastName.value.trim(),
+                email: email.value,
+                password: password.value
+            }
+
+            if (phone.value) data.phone = phone.value
+
+            const result = await register(data)
+
+            if (result.email) {
+                successAlert.textContent = "Account created! Redirecting to login..."
+                successAlert.classList.add("show")
+                setTimeout(() => window.location.href = "/login", 1500)
+            } else {
+                errorAlert.textContent = result.message || "Registration failed. Please try again."
+                errorAlert.classList.add("show")
+                btn.disabled = false
+                btn.textContent = "Create Account"
+            }
+        }
+    </script>
+
+</body>
+</html>

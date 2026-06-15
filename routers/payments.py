@@ -69,7 +69,8 @@ def get_payments(
     current_user: UserModel = Depends(get_current_user)):
 
     payments = db.query(PaymentModel).join(BookingModel).filter(
-        BookingModel.user_id == current_user.id
+        BookingModel.user_id == current_user.id,
+        BookingModel.hidden == False
     ).all()
 
     if not payments:

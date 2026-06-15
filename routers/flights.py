@@ -25,52 +25,75 @@ def get_flights(
     offset = (page - 1) * limit
     return db.query(FlightModel).offset(offset).limit(limit).all()
 
-@router.get("/flights/search", response_model=list[FlightResponse])
-def search_flights(
-    destination: str = None,    # ← airport code e.g. "WAW"
-    origin: str = None,         # ← airport code e.g. "KUL"
+@router.get("/flights/count")          # ← must be BEFORE /flights/{flight_id}
+def get_flights_count(
+    destination: str = None,
+    origin: str = None,
     max_price: float = None,
     db: Session = Depends(get_db)):
 
     query = db.query(FlightModel)
 
-    if destination is not None:
-        # find airport by code first
+    if destination:
+        airport = db.query(AirportModel).filter(
+            AirportModel.code == destination.upper()
+        ).first()
+        if airport:
+            query = query.filter(FlightModel.destination_id == airport.id)
+
+    if origin:
+        airport = db.query(AirportModel).filter(
+            AirportModel.code == origin.upper()
+        ).first()
+        if airport:
+            query = query.filter(FlightModel.origin_id == airport.id)
+
+    if max_price:
+        query = query.filter(FlightModel.price <= max_price)
+
+    return {"total": query.count()}
+
+@router.get("/flights/search", response_model=list[FlightResponse]) 
+def search_flights(
+    destination: str = None,
+    origin: str = None,
+    max_price: float = None,
+    page: int = 1,
+    limit: int = 6,
+    db: Session = Depends(get_db)):
+
+    query = db.query(FlightModel)
+
+    if destination:
         airport = db.query(AirportModel).filter(
             AirportModel.code == destination.upper()
         ).first()
         if not airport:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Airport with code '{destination}' not found."
-            )
+            raise HTTPException(status_code=404,
+                detail=f"Airport with code '{destination}' not found.")
         query = query.filter(FlightModel.destination_id == airport.id)
 
-    if origin is not None:
+    if origin:
         airport = db.query(AirportModel).filter(
             AirportModel.code == origin.upper()
         ).first()
         if not airport:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Airport with code '{origin}' not found."
-            )
+            raise HTTPException(status_code=404,
+                detail=f"Airport with code '{origin}' not found.")
         query = query.filter(FlightModel.origin_id == airport.id)
 
     if max_price is not None:
         query = query.filter(FlightModel.price <= max_price)
 
-    flights = query.all()
+    flights = query.offset((page - 1) * limit).limit(limit).all()
 
     if not flights:
-        raise HTTPException(
-            status_code=404,
-            detail="No flights found matching your search criteria."
-        )
+        raise HTTPException(status_code=404,
+            detail="No flights found matching your search criteria.")
 
     return flights
 
-@router.get("/flights/{flight_id}", response_model=FlightResponse)
+@router.get("/flights/{flight_id}", response_model=FlightResponse)   
 def get_flight(flight_id: int, db: Session = Depends(get_db)):
     flight = db.query(FlightModel).filter(FlightModel.id == flight_id).first()
     if not flight:

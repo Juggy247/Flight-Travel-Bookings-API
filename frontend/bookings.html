@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings — Flight Agency</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/bookings.css?v=2">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <span>✈️</span> Flight Agency
+        </a>
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="navbar-menu" id="navbar-menu">
+            <li><a href="/">Flights</a></li>
+            <li><a href="/bookings-page" class="active">My Bookings</a></li>
+            <li><a href="/payments-page">My Payments</a></li>
+            <li id="nav-user">
+                <span class="nav-email" id="user-email"></span>
+            </li>
+            <li>
+                <a href="#" onclick="logout()" class="btn btn-secondary btn-sm">Logout</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="page-content">
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>My Bookings</h1>
+                <a href="/" class="btn btn-primary">
+                    + Book New Flight
+                </a>
+            </div>
+
+            <!-- Alerts -->
+            <div class="alert alert-error" id="error-alert"></div>
+            <div class="alert alert-success" id="success-alert"></div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading your bookings...</p>
+            </div>
+
+            <!-- Bookings List -->
+            <div id="bookings-list" style="display:none"></div>
+
+        </div>
+    </div>
+
+    <!-- Cancel Confirm Modal -->
+    <div class="modal-overlay" id="cancel-modal" onclick="closeCancelModal()">
+        <div class="modal card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Cancel Booking</h3>
+                <button class="modal-close" onclick="closeCancelModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this booking?</p>
+                <p class="modal-warning">⚠️ This cannot be undone.</p>
+                <div class="alert alert-error" id="cancel-error"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCancelModal()">Keep Booking</button>
+                <button class="btn btn-danger" id="confirm-cancel-btn"
+                    onclick="confirmCancel()">Yes, Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pay Modal -->
+    <div class="modal-overlay" id="pay-modal" onclick="closePayModal()">
+        <div class="modal card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Make Payment</h3>
+                <button class="modal-close" onclick="closePayModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="pay-flight-info"></div>
+                <div class="form-group" style="margin-top: 16px">
+                    <label for="currency">Currency</label>
+                    <select id="currency">
+                        <option value="USD">USD — US Dollar</option>
+                        <option value="EUR">EUR — Euro</option>
+                        <option value="GBP">GBP — British Pound</option>
+                        <option value="PLN">PLN — Polish Zloty</option>
+                        <option value="MYR">MYR — Malaysian Ringgit</option>
+                        <option value="SGD">SGD — Singapore Dollar</option>
+                        <option value="JPY">JPY — Japanese Yen</option>
+                        <option value="THB">THB — Thai Baht</option>
+                    </select>
+                </div>
+                <div class="alert alert-error" id="pay-error"></div>
+                <div class="alert alert-success" id="pay-success"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePayModal()">Cancel</button>
+                <button class="btn btn-success" id="confirm-pay-btn"
+                    onclick="confirmPayment()">Confirm Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js?v=2"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/bookings.js?v=2"></script>
+
+</body>
+</html>

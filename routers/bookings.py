@@ -7,6 +7,7 @@ from models.flight import Flight as FlightModel
 from database import get_db
 from auth import get_current_user
 from constants import COMMON_RESPONSES
+from models.payment import Payment as PaymentModel
 
 router = APIRouter(
     tags=["Bookings API"],
@@ -55,7 +56,8 @@ def get_bookings(
     current_user: UserModel = Depends(get_current_user)):
 
     bookings = db.query(BookingModel).filter(
-        BookingModel.user_id == current_user.id
+        BookingModel.user_id == current_user.id,
+        BookingModel.hidden == False
     ).all()
 
     if not bookings:
@@ -87,6 +89,23 @@ def delete_booking(booking_id: int, db: Session = Depends(get_db),
     db.commit()
     return Response(status_code=204)
 
+@router.put("/bookings/{booking_id}/hide", status_code=204)
+def hide_booking(booking_id: int, db: Session = Depends(get_db),
+                  current_user: UserModel = Depends(get_current_user)):
+
+    booking = db.query(BookingModel).filter(
+        BookingModel.id == booking_id,
+        BookingModel.user_id == current_user.id,
+        BookingModel.status == "cancelled"
+    ).first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Cancelled booking not found.")
+
+    booking.hidden = True
+    db.commit()
+    return Response(status_code=204)
+
 @router.put("/bookings/{booking_id}", response_model=BookingResponse)
 def update_booking(
     booking_id: int,
@@ -107,7 +126,15 @@ def update_booking(
         if flight:
             flight.seats += 1
 
+    # auto-refund linked payment if it exists
+        payment = db.query(PaymentModel).filter(
+            PaymentModel.booking_id == query_check.id
+        ).first()
+        if payment and payment.status != "refunded":
+            payment.status = "refunded"
+
     query_check.status = booking_data.status
     db.commit()
     db.refresh(query_check)
     return query_check
+

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Flight Agency</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=2">
+    <link rel="stylesheet" href="/static/css/auth.css?v=2">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <img src="/static/images/air-plane.png" alt="Flight Agency" class="navbar-logo">
+             Flight Agency
+        </a>
+        <button class="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="navbar-menu" id="navbar-menu">
+            <li><a href="/">Flights</a></li>
+            <li><a href="/login" class="active">Login</a></li>
+            <li><a href="/register">Register</a></li>
+        </ul>
+    </nav>
+
+    <!-- Login Form -->
+    <div class="container">
+        <div class="page-content">
+            <div class="auth-wrapper">
+                <div class="auth-card card">
+
+                    <div class="auth-header">
+                        <div class="auth-icon">
+                            <img src="/static/images/air-plane.png" alt="Flight Agency">
+                        </div>
+                        <h1>Welcome Back</h1>
+                        <p>Login to manage your bookings</p>
+                    </div>
+
+                    <!-- Alert -->
+                    <div class="alert alert-error" id="error-alert"></div>
+                    <div class="alert alert-success" id="success-alert"></div>
+
+                    <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input
+                                type="email"
+                                id="email"
+                                placeholder="john@example.com"
+                                required
+                            >
+                            <span class="form-error" id="email-error">
+                                Please enter a valid email address
+                            </span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-wrapper">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    placeholder="Enter your password"
+                                    minlength="8"
+                                    required
+                                >
+                                <button type="button" class="toggle-password"
+                                    onclick="togglePassword()">👁️</button>
+                            </div>
+                            <span class="form-error" id="password-error">
+                                Password must be at least 8 characters
+                            </span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+                            Login
+                        </button>
+
+                    </form>
+
+                    <div class="auth-footer">
+                        Don't have an account?
+                        <a href="/register">Register here</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (localStorage.getItem("token")) {
+            window.location.href = "/"
+        }
+
+        function toggleMenu() {
+            document.getElementById("navbar-menu").classList.toggle("open")
+        }
+
+        function togglePassword() {
+            const input = document.getElementById("password")
+            input.type = input.type === "password" ? "text" : "password"
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault()
+
+            const email = document.getElementById("email")
+            const password = document.getElementById("password")
+            const emailError = document.getElementById("email-error")
+            const passwordError = document.getElementById("password-error")
+            const errorAlert = document.getElementById("error-alert")
+            const successAlert = document.getElementById("success-alert")
+            const btn = document.getElementById("login-btn")
+
+            // Reset errors
+            emailError.classList.remove("show")
+            passwordError.classList.remove("show")
+            errorAlert.classList.remove("show")
+            successAlert.classList.remove("show")
+
+            // Validate
+            let valid = true
+
+            if (!email.value || !email.validity.valid) {
+                emailError.classList.add("show")
+                valid = false
+            }
+
+            if (!password.value || password.value.length < 8) {
+                passwordError.classList.add("show")
+                valid = false
+            }
+
+            if (!valid) return
+
+            // Submit
+            btn.disabled = true
+            btn.textContent = "Logging in..."
+
+            const result = await login(email.value, password.value)
+
+            if (result.access_token) {
+                localStorage.setItem("token", result.access_token)
+                const userData = await getMe()
+                if (userData && userData.id) {
+                    localStorage.setItem("user", JSON.stringify(userData))
+                }
+                
+                successAlert.textContent = "Login successful! Redirecting..."
+                successAlert.classList.add("show")
+                setTimeout(() => window.location.href = "/", 1000)
+            } else {
+                errorAlert.textContent = result.message || "Invalid email or password."
+                errorAlert.classList.add("show")
+                btn.disabled = false
+                btn.textContent = "Login"
+            }
+        }
+    </script>
+
+</body>
+</html>

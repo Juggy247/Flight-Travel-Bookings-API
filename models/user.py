@@ -18,6 +18,9 @@ class User(Base):
     is_admin = Column(Boolean, default=False, nullable=False)
 
     bookings = relationship("Booking", back_populates="user")
+
+    def __str__(self):
+        return f"{self.email}"
     #relationship() is used to link two models (tables)
     #back_populates - connect both sides of the relationship.
     #one to many relationship
