@@ -257,5 +257,10 @@ All endpoints are protected against invalid input:
 ## JWT Authentication
 User identity is always extracted from the verified JWT token — never trusted from the request body. Prevents impersonation.
 
+## Contributors
+
+**Main contributors**
+- [Thu Htoo Zaw](https://github.com/THEIR-USERNAME)
+- [Thiri Toe Toe Zin](https://github.com/THEIR-USERNAME)
 
 
